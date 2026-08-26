@@ -1,10 +1,15 @@
 # Bazzite NASの健康監視・状態連携・Recovery実装記録
 
+> このファイルはブログ記事ではなく、個人情報や秘密情報を除去した第三者向けの実施・検証記録です。
+
 ## 基本情報
 
-- 実施日：2026-08-23
+- 作成日：2026-08-23
+- 最終更新日：2026-08-26
+- タイトル：Bazzite NASの健康監視・状態連携・Recovery実装記録
 - 分類：Linux / Bazzite / NAS / SMART / systemd / rclone / Recovery
 - 状態：実装・異常系検証・正式運用開始済み
+- 元になった非公開記録：`Knowledge/2026-08-23-alienware-alpha-nas-health-monitoring-recovery.md`
 
 ## 背景
 
@@ -36,6 +41,8 @@ SMART取得と状態生成はsystem-level service、クラウド同期とユー�
 ### rootからuser serviceを直接参照できない
 
 root serviceから`runuser`を経由してuser serviceの状態を取得しようとしたところ、PAM処理とservice hardeningの組み合わせで失敗した。
+
+失敗の発生自体は確認済みだが、PAM処理とhardeningのどの要素が直接衝突したかは個別に切り分けておらず、原因の細部は推測を含む。
 
 採用した修正は、user側が小さなstateファイルを定期生成し、root側はそのファイルから許可したキーだけを文字列として読む方式である。root側でuser所有ファイルを`source`せず、権限境界を維持した。
 
@@ -80,9 +87,42 @@ RecoveryにはOAuth token、Client Secret、パスワード、秘密鍵、rclone
 - 異常系はmockで検証し、本番データ経路を汚さない。
 - Recoveryは秘密情報を含めず、認証だけを再設定できる構成にする。
 
+## 未検証
+
+- 長期間連続運用した場合の安定性と履歴増加時の扱い
+- Bazzite以外のLinuxディストリビューションでの再現性
+- 別のHDD、接続方式、ファイルシステムで同じ判定・構成を使う場合の差
+- 温度や容量等の判定閾値が、すべての機器・用途にそのまま適用できるか
+
 ## 関連記録
 
-- `Knowledge/2026-08-23-alienware-alpha-nas-health-monitoring-recovery.md`
-- `Public/2026-08-16-bazzite-rclone-google-drive-nas-backup.md`
-- `Public/2026-08-23-samba-exfat-vfs-windows-copy-error-public.md`
+- 元Knowledge：`Knowledge/2026-08-23-alienware-alpha-nas-health-monitoring-recovery.md`
+- 関連Session：`Sessions/2026-08-16-alienware-alpha-google-drive-backup-automation.md`
+- 関連Session：`Sessions/2026-08-23-alienware-alpha-samba-exfat-windows-copy-fix.md`
+- 関連Public：`Public/2026-08-16-bazzite-rclone-google-drive-nas-backup.md`
+- 関連Public：`Public/2026-08-23-samba-exfat-vfs-windows-copy-error-public.md`
 
+## 公開用の処理
+
+- 除去した情報：ユーザー名、固定デバイス識別子、家庭内の固有パス、クラウドストレージ上の固有識別情報
+- 一般化した情報：NASの共有名、ローカルとクラウドの具体的なディレクトリ構成、Recoveryの実配置
+- 秘密情報：OAuth token、Client Secret、パスワード、秘密鍵、rclone設定内容は含めていない
+- 公開時の注意点：実際のスクリプトや設定例を追加する場合は、ユーザー名、by-idのシリアル部分、remote名、パス、認証情報を再確認する
+- 外部公開：未実施
+
+## 公開前チェック
+
+- [x] パスワード、APIキー、トークン、秘密鍵を含まない
+- [x] 個人名、ユーザー名、メールアドレスを含まない
+- [x] IPアドレス、固定デバイス識別子、家庭内ネットワーク情報を含まない
+- [x] 家庭内の固有パスやクラウド上の固有識別情報を含まない
+- [x] 第三者の個人情報を含まない
+- [x] 推測を確認済みの事実として書いていない
+- [x] 未検証を明記した
+- [x] 元記録と関連記録の関係を記載した
+- [x] 読み物へ過度に再構成せず、実施・検証記録の役割を保った
+
+## 変更履歴
+
+- 2026-08-23：元Knowledgeの実装・検証内容を基に初版作成
+- 2026-08-26：既存Publicの形式に合わせ、元記録、未検証、公開用の処理、公開前チェック、変更履歴を追記
